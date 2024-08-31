@@ -26,7 +26,7 @@ class Statics {
     final random = Random();
     var messageTime = DateTime.now();
 
-    return List.generate(40000, (_) {
+    return List.generate(40, (_) {
       // Calculate the dateTime, decreasing by a random interval
       final secondsToSubtract = random.nextInt(16) + 5; // 5 to 20 seconds
       messageTime = messageTime.subtract(Duration(seconds: secondsToSubtract));

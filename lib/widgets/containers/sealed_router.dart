@@ -23,6 +23,7 @@ class SealedRouter extends StatelessWidget {
       LoginMixin() => const InvalidUserState.invalidVariant(),
       LogoutMixin() => const InvalidUserState.invalidVariant(),
       ExpireSessionMixin() => const InvalidUserState.invalidVariant(),
+      UserProfileMixin() => const InvalidUserState.invalidVariant(),
     };
   }
 }

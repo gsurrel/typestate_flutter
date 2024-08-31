@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:type_state_pattern/entities/post.dart';
+import 'package:type_state_pattern/entities/user.dart';
 import 'package:type_state_pattern/statics.dart';
 
 /// Represents a token for user authentication.
@@ -19,6 +20,20 @@ mixin LogoutMixin on UserState {
   void logout(UserSession session) => session.state = LoggedOut();
 }
 
+/// Mixin for user info.
+mixin UserProfileMixin on UserState {
+  User get user => _user;
+  User _user = const User(
+    name: 'John Doe',
+    email: 'john.doe@example.com',
+    bio: 'Flutter enthusiast and developer.',
+  );
+  set user(User user) {
+    _user = user;
+    notifyListeners();
+  }
+}
+
 /// Mixin for expiring a session.
 mixin ExpireSessionMixin on UserState {
   void expireSession(UserSession session) => session.state = LoggedInExpired();
@@ -31,7 +46,8 @@ sealed class UserState with ChangeNotifier {}
 class LoggedOut extends UserState with LoginMixin {}
 
 /// Represents the logged-in state of a user with a valid session.
-class LoggedInValid extends UserState with LogoutMixin, ExpireSessionMixin {
+class LoggedInValid extends UserState
+    with LogoutMixin, ExpireSessionMixin, UserProfileMixin {
   LoggedInValid({required Token token}) : _token = token {
     Statics.generateInitialFeedItems();
     _startPostTimer();
@@ -68,6 +84,11 @@ class LoggedInValid extends UserState with LogoutMixin, ExpireSessionMixin {
     }
   }
 
+  void delete(Post item) {
+    _posts.remove(item);
+    notifyListeners();
+  }
+
   List<Post> get posts => List.unmodifiable(_posts);
 
   // Timer to prepend a new post every random interval (2 to 8 seconds)
@@ -89,7 +110,8 @@ class LoggedInValid extends UserState with LogoutMixin, ExpireSessionMixin {
 }
 
 /// Represents the logged-in state of a user with an expired session.
-class LoggedInExpired extends UserState with LoginMixin, LogoutMixin {
+class LoggedInExpired extends UserState
+    with LoginMixin, LogoutMixin, UserProfileMixin {
   // No need to override login and logout methods
 }
 

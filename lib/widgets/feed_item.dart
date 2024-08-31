@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:type_state_pattern/business/user_provider.dart';
 import 'package:type_state_pattern/business/user_state.dart';
 import 'package:type_state_pattern/entities/post.dart';
+import 'package:type_state_pattern/entities/user.dart';
+import 'package:type_state_pattern/widgets/user_avatar.dart';
 
 @immutable
 class FeedItem extends StatefulWidget {
@@ -24,10 +26,16 @@ class _FeedItemState extends State<FeedItem> with TickerProviderStateMixin {
     vsync: this,
   );
 
+  late final AnimationController _deleteController = AnimationController(
+    duration: Durations.short2,
+    vsync: this,
+  );
+
   @override
   void dispose() {
     _repostController.dispose();
     _favoriteController.dispose();
+    _deleteController.dispose();
     super.dispose();
   }
 
@@ -47,8 +55,17 @@ class _FeedItemState extends State<FeedItem> with TickerProviderStateMixin {
     }
   }
 
+  void _onDelete() {
+    _deleteController.forward().then((_) => _deleteController.reverse());
+    final userState = UserProvider.maybeOf(context);
+    if (userState case UserProviderState(state: final LoggedInValid state)) {
+      state.delete(widget.item);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final userState = UserProvider.maybeOf(context);
     return Card(
       margin: const EdgeInsets.all(8),
       child: Padding(
@@ -58,7 +75,7 @@ class _FeedItemState extends State<FeedItem> with TickerProviderStateMixin {
           children: [
             Row(
               children: [
-                MyAvatar(name: widget.item.author),
+                UserAvatar(name: widget.item.author),
                 const SizedBox(width: 8),
                 Text(
                   widget.item.author,
@@ -113,10 +130,22 @@ class _FeedItemState extends State<FeedItem> with TickerProviderStateMixin {
                     onPressed: _onFavorite,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () {},
-                ),
+                if (userState
+                    case UserProviderState(
+                      state: UserProfileMixin(user: User(:final role))
+                    ) when role == UserRole.admin)
+                  ScaleTransition(
+                    scale: Tween<double>(begin: 1, end: 0).animate(
+                      CurvedAnimation(
+                        parent: _deleteController,
+                        curve: Curves.easeInOut,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: _onDelete,
+                    ),
+                  ),
               ],
             ),
           ],
@@ -136,35 +165,5 @@ class _FeedItemState extends State<FeedItem> with TickerProviderStateMixin {
     } else {
       return '${seconds}s ago';
     }
-  }
-}
-
-class MyAvatar extends StatelessWidget {
-  const MyAvatar({
-    required this.name,
-    super.key,
-  });
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 2,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: CircleAvatar(
-        child: Text(
-          String.fromCharCode(name.runes.first),
-        ),
-      ),
-    );
   }
 }

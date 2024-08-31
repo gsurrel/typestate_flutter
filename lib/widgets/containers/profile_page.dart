@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:type_state_pattern/business/user_provider.dart';
+import 'package:type_state_pattern/business/user_state.dart';
+import 'package:type_state_pattern/entities/user.dart';
+import 'package:type_state_pattern/widgets/invalid_user_state.dart';
 
 @immutable
 class ProfilePage extends StatefulWidget {
@@ -8,55 +12,59 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage>
-    with SingleTickerProviderStateMixin {
-  String _name = 'John Doe';
-  String _email = 'john.doe@example.com';
-  String _bio = 'Flutter enthusiast and developer.';
-
+class _ProfilePageState extends State<ProfilePage> {
   // Controllers for text fields
-  late final TextEditingController _nameController = TextEditingController()
-    ..text = _name;
-  late final TextEditingController _emailController = TextEditingController()
-    ..text = _email;
-  late final TextEditingController _bioController = TextEditingController()
-    ..text = _bio;
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _bioController;
 
-  // Animation controller
-  late final AnimationController _animationController = AnimationController(
-    duration: Durations.medium1,
-    vsync: this,
-  );
+  // Variable to hold the selected user role
+  UserRole _selectedRole = UserRole.standard;
 
-  // State to track view/edit mode
+  // Flag to toggle between edit and view mode
   bool _isEditing = false;
 
-  void _toggleEdit() {
-    setState(() {
-      _isEditing = !_isEditing;
-      _isEditing
-          ? _animationController.forward()
-          : _animationController.reverse();
-    });
+  // Flag to track if user data has been loaded
+  bool _isUserDataLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _emailController = TextEditingController();
+    _bioController = TextEditingController();
+  }
+
+  void _loadUserData(User user) {
+    if (!_isUserDataLoaded) {
+      _nameController.text = user.name;
+      _emailController.text = user.email;
+      _bioController.text = user.bio;
+      _selectedRole = user.role;
+      _isUserDataLoaded = true;
+    }
   }
 
   void _saveProfile() {
-    setState(() {
-      _name = _nameController.text;
-      _email = _emailController.text;
-      _bio = _bioController.text;
-      _isEditing = false;
-      _animationController.reverse();
-    });
+    final userState = UserProvider.maybeOf(context);
+    if (userState case UserProviderState(:final UserProfileMixin state)) {
+      state.user = state.user.copyWith(
+        name: _nameController.text,
+        email: _emailController.text,
+        bio: _bioController.text,
+        role: _selectedRole,
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated successfully!')),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully!')),
+      );
+
+      setState(() => _isEditing = false);
+    }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _bioController.dispose();
@@ -65,127 +73,112 @@ class _ProfilePageState extends State<ProfilePage>
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Profile',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.teal,
+    final userState = UserProvider.maybeOf(context);
+    if (userState
+        case UserProviderState(state: UserProfileMixin(:final user))) {
+      // if (_isEditing)
+      _loadUserData(user);
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Profile',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Stack(
-            children: [
-              // Card for displaying profile information
-              FadeTransition(
-                opacity: _animationController.drive(
-                  Tween<double>(begin: 1, end: 0),
-                ),
-                child: Card(
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Name: $_name',
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Email: $_email',
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Bio: $_bio',
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                      ],
+            const SizedBox(height: 16),
+            Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Name',
+                        border: OutlineInputBorder(),
+                      ),
+                      enabled: _isEditing,
                     ),
-                  ),
-                ),
-              ),
-              // Card for editing profile information
-              FadeTransition(
-                opacity: _animationController.drive(
-                  Tween<double>(begin: 0, end: 1),
-                ),
-                child: Card(
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Name',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _bioController,
-                          decoration: const InputDecoration(
-                            labelText: 'Bio',
-                            border: OutlineInputBorder(),
-                          ),
-                          maxLines: 3,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _saveProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal, // Button color
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 24,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Save Changes',
-                            style: TextStyle(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      enabled: _isEditing,
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _bioController,
+                      decoration: const InputDecoration(
+                        labelText: 'Bio',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                      enabled: _isEditing,
+                    ),
+                    const SizedBox(height: 16),
+                    SegmentedButton<UserRole>(
+                      segments: UserRole.values
+                          .map(
+                            (UserRole role) => ButtonSegment<UserRole>(
+                              value: role,
+                              label: Text(role.name),
+                            ),
+                          )
+                          .toList(),
+                      selected: {_selectedRole},
+                      onSelectionChanged: _isEditing
+                          ? (Set<UserRole> newSelection) {
+                              setState(
+                                () => _selectedRole = newSelection.first,
+                              );
+                            }
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _isEditing
+                          ? _saveProfile
+                          : () => setState(() => _isEditing = true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 24,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        _isEditing ? 'Save Changes' : 'Edit Profile',
+                        style: const TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              // Edit/Save button in the top right corner
-              Positioned(
-                right: 16,
-                top: 16,
-                child: IconButton(
-                  icon: Icon(_isEditing ? Icons.remove_red_eye : Icons.edit),
-                  onPressed: _toggleEdit,
-                  color: Colors.teal,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+            ),
+          ],
+        ),
+      );
+    } else if (userState == null) {
+      return const InvalidUserState.nullState();
+    } else {
+      return const InvalidUserState.invalidVariant();
+    }
   }
 }
