@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:type_state_pattern/business/user_provider.dart';
+import 'package:type_state_pattern/business/user_state.dart';
 import 'package:type_state_pattern/entities/post.dart';
 
 @immutable
@@ -33,13 +34,17 @@ class _FeedItemState extends State<FeedItem> with TickerProviderStateMixin {
   void _onRepost() {
     _repostController.forward().then((_) => _repostController.reverse());
     final userState = UserProvider.maybeOf(context);
-    if (userState != null) userState.repost(widget.item);
+    if (userState case UserProviderState(state: final LoggedInValid state)) {
+      state.repost(widget.item);
+    }
   }
 
   void _onFavorite() {
     _favoriteController.forward().then((_) => _favoriteController.reverse());
     final userState = UserProvider.maybeOf(context);
-    if (userState != null) userState.favorite(widget.item);
+    if (userState case UserProviderState(state: final LoggedInValid state)) {
+      state.favorite(widget.item);
+    }
   }
 
   @override

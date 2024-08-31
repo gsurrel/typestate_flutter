@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:type_state_pattern/business/user_state.dart';
-import 'package:type_state_pattern/entities/post.dart';
 
 @immutable
 class UserProvider extends StatefulWidget {
@@ -18,58 +17,21 @@ class UserProvider extends StatefulWidget {
 
 class UserProviderState extends State<UserProvider> {
   UserProviderState() {
-    _session.addListener(_onUserStateChanged);
+    _session.addListener(_onSessionChanged);
   }
 
+  UserSession get session => _session;
   final UserSession<UserState> _session = UserSession(LoggedOut());
-
-  void _onUserStateChanged() => setState(() {});
-
-  void login() {
-    if (_session.state case final LoginMixin state) {
-      setState(() => _session.state = state.login());
-    }
-  }
-
-  void logout() {
-    if (_session.state case final LogoutMixin state) {
-      setState(() => _session.state = state.logout());
-    }
-  }
-
-  void expireSession() {
-    if (_session.state case final LoggedInValid state) {
-      setState(() => _session.state = state.expireSession());
-    }
-  }
-
-  void refreshToken() {
-    if (_session.state case final LoggedInValid state) {
-      setState(state.refreshToken);
-    }
-  }
-
-  void favorite(Post item) {
-    if (_session.state case final LoggedInValid state) {
-      setState(() => state.favorite(item));
-    }
-  }
-
-  void repost(Post item) {
-    if (_session.state case final LoggedInValid state) {
-      setState(() => state.repost(item));
-    }
-  }
 
   UserState get state => _session.state;
 
+  void _onSessionChanged() => setState(() {});
+
   @override
-  Widget build(BuildContext context) {
-    return UserProviderInherited(
-      userState: this,
-      child: widget.child,
-    );
-  }
+  Widget build(BuildContext context) => UserProviderInherited(
+        userState: this,
+        child: widget.child,
+      );
 }
 
 @immutable

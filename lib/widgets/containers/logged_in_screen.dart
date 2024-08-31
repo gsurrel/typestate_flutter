@@ -28,19 +28,19 @@ class _LoggedInScreenState extends State<LoggedInScreen> {
       null => const InvalidUserState.nullState(),
       UserProviderState(state: LoggedOut()) =>
         const InvalidUserState.invalidVariant(),
-      UserProviderState(:final state) => Scaffold(
+      UserProviderState(:final state, :final session) => Scaffold(
           appBar: AppBar(
             title: const Text('Home Screen'),
             actions: [
               if (state case LoginMixin())
                 IconButton(
                   icon: const Icon(Icons.login),
-                  onPressed: userState.login,
+                  onPressed: () => state.login(session),
                 ),
               if (state case LogoutMixin())
                 IconButton(
-                  icon: const Icon(Icons.login),
-                  onPressed: userState.logout,
+                  icon: const Icon(Icons.logout),
+                  onPressed: () => state.logout(session),
                 ),
             ],
           ),
@@ -69,24 +69,30 @@ class _LoggedInScreenState extends State<LoggedInScreen> {
             currentIndex: _selectedTab.index,
             onTap: _onItemTapped,
           ),
-          floatingActionButton: (state is! LoggedInValid)
-              ? null
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    FloatingActionButton(
-                      onPressed: userState.refreshToken,
-                      tooltip: 'Refresh Token',
-                      child: const Icon(Icons.refresh),
-                    ),
-                    const SizedBox(width: 16),
-                    FloatingActionButton(
-                      onPressed: userState.expireSession,
-                      tooltip: 'Expire Session',
-                      child: const Icon(Icons.explicit),
-                    ),
-                  ],
+          floatingActionButton: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (state case final LoggedInValid state)
+                FloatingActionButton(
+                  onPressed: state.refreshToken,
+                  tooltip: 'Refresh Token',
+                  child: const Icon(Icons.refresh),
                 ),
+              if (state case final ExpireSessionMixin state)
+                FloatingActionButton(
+                  onPressed: () => state.expireSession(session),
+                  tooltip: 'Expire Session',
+                  child: const Icon(Icons.explicit),
+                ),
+            ]
+                .expand(
+                  (element) => [
+                    element,
+                    const SizedBox(width: 16),
+                  ],
+                )
+                .toList(),
+          ),
         ),
     };
   }

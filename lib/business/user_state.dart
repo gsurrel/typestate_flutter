@@ -10,17 +10,18 @@ typedef Token = String;
 
 /// Mixin for logging in.
 mixin LoginMixin on UserState {
-  LoggedInValid login() => LoggedInValid(token: 'foobar');
+  void login(UserSession session) =>
+      session.state = LoggedInValid(token: 'foobar');
 }
 
 /// Mixin for logging out.
 mixin LogoutMixin on UserState {
-  LoggedOut logout() => LoggedOut();
+  void logout(UserSession session) => session.state = LoggedOut();
 }
 
 /// Mixin for expiring a session.
 mixin ExpireSessionMixin on UserState {
-  LoggedInExpired expireSession() => LoggedInExpired();
+  void expireSession(UserSession session) => session.state = LoggedInExpired();
 }
 
 /// Represents the base class for user states.
@@ -104,8 +105,11 @@ class UserSession<S extends UserState> extends ChangeNotifier {
     _state.removeListener(_onStateChanged);
     _state = state;
     _state.addListener(_onStateChanged);
+
+    // Forward outer state changes to the UI.
+    notifyListeners();
   }
 
-  // Forward changes to the UI.
+  // Forward inner state changes to the UI.
   void _onStateChanged() => notifyListeners();
 }

@@ -13,10 +13,13 @@ class SealedRouter extends StatelessWidget {
   Widget build(BuildContext context) {
     final userState = UserProvider.maybeOf(context);
     return switch (userState?.state) {
+      // First the sealed class `extends`.
       LoggedInValid() => const LoggedInScreen(),
       LoggedOut() => const LoginScreen(),
       LoggedInExpired() => const LoggedInScreen(),
+      // Then the case where no state was found in the widget tree.
       null => const InvalidUserState.nullState(),
+      // Last, the available mixins `with`.
       LoginMixin() => const InvalidUserState.invalidVariant(),
       LogoutMixin() => const InvalidUserState.invalidVariant(),
       ExpireSessionMixin() => const InvalidUserState.invalidVariant(),
