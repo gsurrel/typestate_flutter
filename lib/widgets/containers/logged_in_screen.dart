@@ -32,34 +32,20 @@ class _LoggedInScreenState extends State<LoggedInScreen> {
           appBar: AppBar(
             title: const Text('Home Screen'),
             actions: [
-              IconButton(
-                icon: Icon(
-                  switch (state) {
-                    LoggedOut() => throw UnimplementedError(),
-                    LoggedInValid() => Icons.logout,
-                    LoggedInExpired() => Icons.login,
-                  },
+              if (state case LoginMixin())
+                IconButton(
+                  icon: const Icon(Icons.login),
+                  onPressed: userState.login,
                 ),
-                onPressed: switch (state) {
-                  LoggedOut() => throw UnimplementedError(),
-                  LoggedInValid() => userState.logout,
-                  LoggedInExpired() => userState.login,
-                },
-              ),
+              if (state case LogoutMixin())
+                IconButton(
+                  icon: const Icon(Icons.login),
+                  onPressed: userState.logout,
+                ),
             ],
           ),
           body: switch (_selectedTab) {
-            Tab.feed => switch (state) {
-                LoggedOut() => throw UnimplementedError(),
-                LoggedInValid() => const FeedPage(),
-                LoggedInExpired() => const Center(
-                    child: Text(
-                      'Feed is disabled because your access token '
-                      'has expired. Log-in to access your feed.',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-              },
+            Tab.feed => const FeedPage(),
             Tab.profile => const ProfilePage(),
           },
           bottomNavigationBar: BottomNavigationBar(
@@ -83,26 +69,24 @@ class _LoggedInScreenState extends State<LoggedInScreen> {
             currentIndex: _selectedTab.index,
             onTap: _onItemTapped,
           ),
-          floatingActionButton: switch (state) {
-            LoggedOut() => const InvalidUserState.invalidVariant(),
-            LoggedInValid() => Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  FloatingActionButton(
-                    onPressed: userState.refreshToken,
-                    tooltip: 'Refresh Token',
-                    child: const Icon(Icons.refresh),
-                  ),
-                  const SizedBox(width: 16),
-                  FloatingActionButton(
-                    onPressed: userState.expireSession,
-                    tooltip: 'Expire Session',
-                    child: const Icon(Icons.explicit),
-                  ),
-                ],
-              ),
-            LoggedInExpired() => null,
-          },
+          floatingActionButton: (state is! LoggedInValid)
+              ? null
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    FloatingActionButton(
+                      onPressed: userState.refreshToken,
+                      tooltip: 'Refresh Token',
+                      child: const Icon(Icons.refresh),
+                    ),
+                    const SizedBox(width: 16),
+                    FloatingActionButton(
+                      onPressed: userState.expireSession,
+                      tooltip: 'Expire Session',
+                      child: const Icon(Icons.explicit),
+                    ),
+                  ],
+                ),
         ),
     };
   }

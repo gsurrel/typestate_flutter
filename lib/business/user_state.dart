@@ -8,21 +8,29 @@ import 'package:type_state_pattern/statics.dart';
 /// Represents a token for user authentication.
 typedef Token = String;
 
-/// Represents the base class for user states.
-sealed class UserState extends ChangeNotifier {
-  // Private methods for state transitions.
-  LoggedInValid _login() => LoggedInValid(token: 'foobar');
-  LoggedOut _logout() => LoggedOut();
-  LoggedInExpired _expireSession() => LoggedInExpired();
+/// Mixin for logging in.
+mixin LoginMixin on UserState {
+  LoggedInValid login() => LoggedInValid(token: 'foobar');
 }
+
+/// Mixin for logging out.
+mixin LogoutMixin on UserState {
+  LoggedOut logout() => LoggedOut();
+}
+
+/// Mixin for expiring a session.
+mixin ExpireSessionMixin on UserState {
+  LoggedInExpired expireSession() => LoggedInExpired();
+}
+
+/// Represents the base class for user states.
+sealed class UserState with ChangeNotifier {}
 
 /// Represents the logged-out state of a user.
-class LoggedOut extends UserState {
-  LoggedInValid login() => _login();
-}
+class LoggedOut extends UserState with LoginMixin {}
 
 /// Represents the logged-in state of a user with a valid session.
-class LoggedInValid extends UserState {
+class LoggedInValid extends UserState with LogoutMixin, ExpireSessionMixin {
   LoggedInValid({required Token token}) : _token = token {
     Statics.generateInitialFeedItems();
     _startPostTimer();
@@ -31,10 +39,6 @@ class LoggedInValid extends UserState {
   Token _token;
 
   final List<Post> _posts = Statics.generateInitialFeedItems();
-
-  LoggedOut logout() => _logout();
-
-  LoggedInExpired expireSession() => _expireSession();
 
   void refreshToken() {
     _token = _token.split('').reversed.join();
@@ -84,11 +88,8 @@ class LoggedInValid extends UserState {
 }
 
 /// Represents the logged-in state of a user with an expired session.
-class LoggedInExpired extends UserState {
-  LoggedInExpired();
-
-  LoggedOut logout() => _logout();
-  LoggedInValid login() => _login();
+class LoggedInExpired extends UserState with LoginMixin, LogoutMixin {
+  // No need to override login and logout methods
 }
 
 /// Class to manage user sessions.

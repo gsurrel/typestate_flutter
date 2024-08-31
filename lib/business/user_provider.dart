@@ -26,59 +26,38 @@ class UserProviderState extends State<UserProvider> {
   void _onUserStateChanged() => setState(() {});
 
   void login() {
-    final newState = switch (_session.state) {
-      final LoggedInValid _ => null,
-      final LoggedOut state => state.login(),
-      final LoggedInExpired state => state.login(),
-    };
-    if (newState != null) setState(() => _session.state = newState);
+    if (_session.state case final LoginMixin state) {
+      setState(() => _session.state = state.login());
+    }
   }
 
   void logout() {
-    final newState = switch (_session.state) {
-      final LoggedInValid state => state.logout(),
-      final LoggedOut _ => null,
-      final LoggedInExpired state => state.logout(),
-    };
-    if (newState != null) setState(() => _session.state = newState);
+    if (_session.state case final LogoutMixin state) {
+      setState(() => _session.state = state.logout());
+    }
   }
 
   void expireSession() {
-    final newState = switch (_session.state) {
-      final LoggedInValid state => state.expireSession(),
-      final LoggedOut _ => null,
-      final LoggedInExpired _ => null,
-    };
-    if (newState != null) setState(() => _session.state = newState);
+    if (_session.state case final LoggedInValid state) {
+      setState(() => _session.state = state.expireSession());
+    }
   }
 
   void refreshToken() {
-    switch (_session.state) {
-      case final LoggedInValid validState:
-        setState(validState.refreshToken);
-      case LoggedOut():
-      case LoggedInExpired():
-      // Invalid call
+    if (_session.state case final LoggedInValid state) {
+      setState(state.refreshToken);
     }
   }
 
   void favorite(Post item) {
-    switch (_session.state) {
-      case final LoggedInValid validState:
-        setState(() => validState.favorite(item));
-      case LoggedOut():
-      case LoggedInExpired():
-      // Invalid call
+    if (_session.state case final LoggedInValid state) {
+      setState(() => state.favorite(item));
     }
   }
 
   void repost(Post item) {
-    switch (_session.state) {
-      case final LoggedInValid validState:
-        setState(() => validState.repost(item));
-      case LoggedOut():
-      case LoggedInExpired():
-      // Invalid call
+    if (_session.state case final LoggedInValid state) {
+      setState(() => state.repost(item));
     }
   }
 

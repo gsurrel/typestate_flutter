@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:type_state_pattern/business/user_provider.dart';
 import 'package:type_state_pattern/business/user_state.dart';
 import 'package:type_state_pattern/widgets/feed_item.dart';
+import 'package:type_state_pattern/widgets/invalid_user_state.dart';
 
 @immutable
 class FeedPage extends StatelessWidget {
@@ -11,28 +12,38 @@ class FeedPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final userState = UserProvider.maybeOf(context);
 
-    return switch (userState) {
-      UserProviderState(state: LoggedInValid(posts: final posts)) => Scaffold(
-          appBar: AppBar(
-            title: const Text(
-              'Feed',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal,
-              ),
+    if (userState
+        case UserProviderState(
+          state: LoggedInValid(posts: final posts),
+        )) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Feed',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.teal,
             ),
           ),
-          body: ListView.builder(
-            itemCount: posts.length,
-            itemBuilder: (context, index) => FeedItem(posts[index]),
-          ),
         ),
-      null => const Placeholder(child: Text('Unable to get user state.')),
-      UserProviderState(state: LoggedOut()) =>
-        const Text('Unsupported user state.'),
-      UserProviderState(state: LoggedInExpired()) =>
-        const Text('Unsupported user state.'),
-    };
+        body: ListView.builder(
+          itemCount: posts.length,
+          itemBuilder: (context, index) => FeedItem(posts[index]),
+        ),
+      );
+    } else if (userState case UserProviderState(state: LoggedInExpired())) {
+      return const Center(
+        child: Text(
+          'Feed is disabled because your access token '
+          'has expired. Log-in to access your feed.',
+          textAlign: TextAlign.center,
+        ),
+      );
+    } else if (userState == null) {
+      return const InvalidUserState.nullState();
+    } else {
+      return const InvalidUserState.invalidVariant();
+    }
   }
 }

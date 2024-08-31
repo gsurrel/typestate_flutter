@@ -10,23 +10,22 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userState = UserProvider.maybeOf(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login Screen'),
-      ),
-      body: Center(
-        child: switch (userState) {
-          UserProviderState(state: LoggedOut()) => ElevatedButton(
-              onPressed: userState.login,
-              child: const Text('Login'),
-            ),
-          UserProviderState(state: LoggedInValid()) =>
-            const InvalidUserState.invalidVariant(),
-          UserProviderState(state: LoggedInExpired()) =>
-            const InvalidUserState.invalidVariant(),
-          null => const InvalidUserState.nullState(),
-        },
-      ),
-    );
+    if (userState case UserProviderState(state: LoginMixin())) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Login Screen'),
+        ),
+        body: Center(
+          child: ElevatedButton(
+            onPressed: userState.login,
+            child: const Text('Login'),
+          ),
+        ),
+      );
+    } else if (userState == null) {
+      return const InvalidUserState.nullState();
+    } else {
+      return const InvalidUserState.invalidVariant();
+    }
   }
 }
