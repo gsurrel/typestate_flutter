@@ -6,18 +6,20 @@ import 'package:type_state_pattern/entities/post.dart';
 import 'package:type_state_pattern/entities/user.dart';
 import 'package:type_state_pattern/statics.dart';
 
-/// Represents a token for user authentication.
-typedef Token = String;
-
 /// Mixin for logging in.
 mixin LoginMixin on UserState {
-  void login(UserSession session) =>
-      session.state = LoggedInValid(token: 'foobar');
+  void login(UserSession session) => session.state = LoggedInSessionUnlocked();
 }
 
 /// Mixin for logging out.
 mixin LogoutMixin on UserState {
   void logout(UserSession session) => session.state = LoggedOut();
+}
+
+/// Mixin for locking a session.
+mixin LockSessionMixin on UserState {
+  void lockSession(UserSession session) =>
+      session.state = LoggedInSessionLocked();
 }
 
 /// Mixin for user info.
@@ -34,33 +36,21 @@ mixin UserProfileMixin on UserState {
   }
 }
 
-/// Mixin for expiring a session.
-mixin ExpireSessionMixin on UserState {
-  void expireSession(UserSession session) => session.state = LoggedInExpired();
-}
-
 /// Represents the base class for user states.
 sealed class UserState with ChangeNotifier {}
 
 /// Represents the logged-out state of a user.
 class LoggedOut extends UserState with LoginMixin {}
 
-/// Represents the logged-in state of a user with a valid session.
-class LoggedInValid extends UserState
-    with LogoutMixin, ExpireSessionMixin, UserProfileMixin {
-  LoggedInValid({required Token token}) : _token = token {
+/// Represents the logged-in state of a user with an unlocked session.
+class LoggedInSessionUnlocked extends UserState
+    with LogoutMixin, LockSessionMixin, UserProfileMixin {
+  LoggedInSessionUnlocked() {
     Statics.generateInitialFeedItems();
     _startPostTimer();
   }
 
-  Token _token;
-
   final List<Post> _posts = Statics.generateInitialFeedItems();
-
-  void refreshToken() {
-    _token = _token.split('').reversed.join();
-    notifyListeners();
-  }
 
   void favorite(Post post) {
     final index = _posts.indexWhere((element) => element == post);
@@ -109,11 +99,9 @@ class LoggedInValid extends UserState
   }
 }
 
-/// Represents the logged-in state of a user with an expired session.
-class LoggedInExpired extends UserState
-    with LoginMixin, LogoutMixin, UserProfileMixin {
-  // No need to override login and logout methods
-}
+/// Represents the logged-in state of a user with an locked session.
+class LoggedInSessionLocked extends UserState
+    with LoginMixin, LogoutMixin, UserProfileMixin {}
 
 /// Class to manage user sessions.
 class UserSession<S extends UserState> extends ChangeNotifier {

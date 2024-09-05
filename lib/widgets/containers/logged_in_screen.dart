@@ -53,9 +53,9 @@ class _LoggedInScreenState extends State<LoggedInScreen> {
               BottomNavigationBarItem(
                 icon: FeedTab(
                   badgeText: switch (state) {
-                    LoggedInValid(posts: final feedItems)
-                        when feedItems.isNotEmpty =>
-                      feedItems.length.toString(),
+                    LoggedInSessionUnlocked(:final posts)
+                        when posts.isNotEmpty =>
+                      posts.length.toString(),
                     _ => null,
                   },
                 ),
@@ -72,24 +72,15 @@ class _LoggedInScreenState extends State<LoggedInScreen> {
           floatingActionButton: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (state case final LoggedInValid state)
+              if (state case final LockSessionMixin state)
                 FloatingActionButton(
-                  onPressed: state.refreshToken,
-                  tooltip: 'Refresh Token',
-                  child: const Icon(Icons.refresh),
-                ),
-              if (state case final ExpireSessionMixin state)
-                FloatingActionButton(
-                  onPressed: () => state.expireSession(session),
-                  tooltip: 'Expire Session',
-                  child: const Icon(Icons.explicit),
+                  onPressed: () => state.lockSession(session),
+                  tooltip: 'Lock session',
+                  child: const Icon(Icons.lock),
                 ),
             ]
                 .expand(
-                  (element) => [
-                    element,
-                    const SizedBox(width: 16),
-                  ],
+                  (element) => [element, const SizedBox(width: 16)],
                 )
                 .toList(),
           ),

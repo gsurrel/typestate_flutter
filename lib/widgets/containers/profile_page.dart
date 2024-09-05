@@ -74,111 +74,109 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final userState = UserProvider.maybeOf(context);
-    if (userState
-        case UserProviderState(state: UserProfileMixin(:final user))) {
-      // if (_isEditing)
-      _loadUserData(user);
-
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Profile',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Name',
-                        border: OutlineInputBorder(),
-                      ),
-                      enabled: _isEditing,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      enabled: _isEditing,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _bioController,
-                      decoration: const InputDecoration(
-                        labelText: 'Bio',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                      enabled: _isEditing,
-                    ),
-                    const SizedBox(height: 16),
-                    SegmentedButton<UserRole>(
-                      segments: UserRole.values
-                          .map(
-                            (UserRole role) => ButtonSegment<UserRole>(
-                              value: role,
-                              label: Text(role.name),
-                            ),
-                          )
-                          .toList(),
-                      selected: {_selectedRole},
-                      onSelectionChanged: _isEditing
-                          ? (Set<UserRole> newSelection) {
-                              setState(
-                                () => _selectedRole = newSelection.first,
-                              );
-                            }
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _isEditing
-                          ? _saveProfile
-                          : () => setState(() => _isEditing = true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 24,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        _isEditing ? 'Save Changes' : 'Edit Profile',
-                        style: const TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
+    switch (userState) {
+      case UserProviderState(state: UserProfileMixin(:final user)):
+        _loadUserData(user);
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Profile',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.teal,
                 ),
               ),
-            ),
-          ],
-        ),
-      );
-    } else if (userState == null) {
-      return const InvalidUserState.nullState();
-    } else {
-      return const InvalidUserState.invalidVariant();
+              const SizedBox(height: 16),
+              Card(
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Name',
+                          border: OutlineInputBorder(),
+                        ),
+                        enabled: _isEditing,
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        enabled: _isEditing,
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _bioController,
+                        decoration: const InputDecoration(
+                          labelText: 'Bio',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                        enabled: _isEditing,
+                      ),
+                      const SizedBox(height: 16),
+                      SegmentedButton<UserRole>(
+                        segments: UserRole.values
+                            .map(
+                              (UserRole role) => ButtonSegment<UserRole>(
+                                value: role,
+                                label: Text(role.name),
+                              ),
+                            )
+                            .toList(),
+                        selected: {_selectedRole},
+                        onSelectionChanged: _isEditing
+                            ? (Set<UserRole> newSelection) {
+                                setState(
+                                  () => _selectedRole = newSelection.first,
+                                );
+                              }
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _isEditing
+                            ? _saveProfile
+                            : () => setState(() => _isEditing = true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 24,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          _isEditing ? 'Save Changes' : 'Edit Profile',
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      case null:
+        return const InvalidUserState.nullState();
+      case _:
+        return const InvalidUserState.invalidVariant();
     }
   }
 }

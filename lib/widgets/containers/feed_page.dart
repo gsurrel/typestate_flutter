@@ -12,38 +12,33 @@ class FeedPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final userState = UserProvider.maybeOf(context);
 
-    if (userState
-        case UserProviderState(
-          state: LoggedInValid(posts: final posts),
-        )) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Feed',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.teal,
+    return switch (userState) {
+      UserProviderState(state: LoggedInSessionUnlocked(:final posts)) =>
+        Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              'Feed',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
             ),
           ),
+          body: ListView.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, index) => FeedItem(posts[index]),
+          ),
         ),
-        body: ListView.builder(
-          itemCount: posts.length,
-          itemBuilder: (context, index) => FeedItem(posts[index]),
+      UserProviderState(state: LoggedInSessionLocked()) => const Center(
+          child: Text(
+            'Feed is disabled because your session is locked. '
+            'Log-in again to access your feed.',
+            textAlign: TextAlign.center,
+          ),
         ),
-      );
-    } else if (userState case UserProviderState(state: LoggedInExpired())) {
-      return const Center(
-        child: Text(
-          'Feed is disabled because your access token '
-          'has expired. Log-in to access your feed.',
-          textAlign: TextAlign.center,
-        ),
-      );
-    } else if (userState == null) {
-      return const InvalidUserState.nullState();
-    } else {
-      return const InvalidUserState.invalidVariant();
-    }
+      null => const InvalidUserState.nullState(),
+      _ => const InvalidUserState.invalidVariant()
+    };
   }
 }

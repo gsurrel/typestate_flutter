@@ -42,7 +42,8 @@ class _FeedItemState extends State<FeedItem> with TickerProviderStateMixin {
   void _onRepost() {
     _repostController.forward().then((_) => _repostController.reverse());
     final userState = UserProvider.maybeOf(context);
-    if (userState case UserProviderState(state: final LoggedInValid state)) {
+    if (userState
+        case UserProviderState(state: final LoggedInSessionUnlocked state)) {
       state.repost(widget.item);
     }
   }
@@ -50,7 +51,8 @@ class _FeedItemState extends State<FeedItem> with TickerProviderStateMixin {
   void _onFavorite() {
     _favoriteController.forward().then((_) => _favoriteController.reverse());
     final userState = UserProvider.maybeOf(context);
-    if (userState case UserProviderState(state: final LoggedInValid state)) {
+    if (userState
+        case UserProviderState(state: final LoggedInSessionUnlocked state)) {
       state.favorite(widget.item);
     }
   }
@@ -58,7 +60,8 @@ class _FeedItemState extends State<FeedItem> with TickerProviderStateMixin {
   void _onDelete() {
     _deleteController.forward().then((_) => _deleteController.reverse());
     final userState = UserProvider.maybeOf(context);
-    if (userState case UserProviderState(state: final LoggedInValid state)) {
+    if (userState
+        case UserProviderState(state: final LoggedInSessionUnlocked state)) {
       state.delete(widget.item);
     }
   }
