@@ -8,18 +8,17 @@ import 'package:type_state_pattern/statics.dart';
 
 /// Mixin for logging in.
 mixin LoginMixin on UserState {
-  void login(UserSession session) => session.state = LoggedInSessionUnlocked();
+  void login() => super._session._state = LoggedInSessionUnlocked(_session);
 }
 
 /// Mixin for logging out.
 mixin LogoutMixin on UserState {
-  void logout(UserSession session) => session.state = LoggedOut();
+  void logout() => super._session._state = LoggedOut(_session);
 }
 
 /// Mixin for locking a session.
 mixin LockSessionMixin on UserState {
-  void lockSession(UserSession session) =>
-      session.state = LoggedInSessionLocked();
+  void lockSession() => super._session._state = LoggedInSessionLocked(_session);
 }
 
 /// Mixin for user info.
@@ -37,15 +36,21 @@ mixin UserProfileMixin on UserState {
 }
 
 /// Represents the base class for user states.
-sealed class UserState with ChangeNotifier {}
+sealed class UserState with ChangeNotifier {
+  UserState(this._session);
+
+  final UserSession _session;
+}
 
 /// Represents the logged-out state of a user.
-class LoggedOut extends UserState with LoginMixin {}
+class LoggedOut extends UserState with LoginMixin {
+  LoggedOut(super.session);
+}
 
 /// Represents the logged-in state of a user with an unlocked session.
 class LoggedInSessionUnlocked extends UserState
     with LogoutMixin, LockSessionMixin, UserProfileMixin {
-  LoggedInSessionUnlocked() {
+  LoggedInSessionUnlocked(super._session) {
     Statics.generateInitialFeedItems();
     _startPostTimer();
   }
@@ -101,16 +106,18 @@ class LoggedInSessionUnlocked extends UserState
 
 /// Represents the logged-in state of a user with an locked session.
 class LoggedInSessionLocked extends UserState
-    with LoginMixin, LogoutMixin, UserProfileMixin {}
+    with LoginMixin, LogoutMixin, UserProfileMixin {
+  LoggedInSessionLocked(super.session);
+}
 
 /// Class to manage user sessions.
 class UserSession<S extends UserState> extends ChangeNotifier {
-  UserSession(this._state) {
+  UserSession() {
     _state.addListener(_onStateChanged);
   }
 
   S get state => _state;
-  S _state;
+  late S _state = LoggedOut(this) as S;
   set state(S state) {
     _state.removeListener(_onStateChanged);
     _state = state;

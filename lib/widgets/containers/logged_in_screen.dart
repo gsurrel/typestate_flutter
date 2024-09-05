@@ -28,19 +28,19 @@ class _LoggedInScreenState extends State<LoggedInScreen> {
       null => const InvalidUserState.nullState(),
       UserProviderState(state: LoggedOut()) =>
         const InvalidUserState.invalidVariant(),
-      UserProviderState(:final state, :final session) => Scaffold(
+      UserProviderState(:final state) => Scaffold(
           appBar: AppBar(
             title: const Text('Home Screen'),
             actions: [
               if (state case LoginMixin())
                 IconButton(
                   icon: const Icon(Icons.login),
-                  onPressed: () => state.login(session),
+                  onPressed: state.login,
                 ),
               if (state case LogoutMixin())
                 IconButton(
                   icon: const Icon(Icons.logout),
-                  onPressed: () => state.logout(session),
+                  onPressed: state.logout,
                 ),
             ],
           ),
@@ -74,7 +74,7 @@ class _LoggedInScreenState extends State<LoggedInScreen> {
             children: [
               if (state case final LockSessionMixin state)
                 FloatingActionButton(
-                  onPressed: () => state.lockSession(session),
+                  onPressed: state.lockSession,
                   tooltip: 'Lock session',
                   child: const Icon(Icons.lock),
                 ),

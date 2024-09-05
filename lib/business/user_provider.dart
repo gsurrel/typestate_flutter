@@ -20,8 +20,7 @@ class UserProviderState extends State<UserProvider> {
     _session.addListener(_onSessionChanged);
   }
 
-  UserSession get session => _session;
-  final UserSession<UserState> _session = UserSession(LoggedOut());
+  final UserSession<UserState> _session = UserSession();
 
   UserState get state => _session.state;
 

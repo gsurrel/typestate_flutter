@@ -11,14 +11,13 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final userState = UserProvider.maybeOf(context);
     return switch (userState) {
-      UserProviderState(:final session, state: final LoginMixin state) =>
-        Scaffold(
+      UserProviderState(state: final LoginMixin state) => Scaffold(
           appBar: AppBar(
             title: const Text('Login Screen'),
           ),
           body: Center(
             child: ElevatedButton(
-              onPressed: () => state.login(session),
+              onPressed: state.login,
               child: const Text('Login'),
             ),
           ),
